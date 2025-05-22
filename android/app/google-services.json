@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "469047707323",
+    "project_id": "eco-wise-b01e6",
+    "storage_bucket": "eco-wise-b01e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:469047707323:android:9f0344b1162acd5ba00b9e",
+        "android_client_info": {
+          "package_name": "com.example.eco_wise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjQys4kK-V9eC9BiTnNGvWzEcsFzx2rZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
