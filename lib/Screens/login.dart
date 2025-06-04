@@ -1,7 +1,9 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
+import '../Components/input_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,14 +19,21 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> login() async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
       if (mounted) {
-        // TODO: Navigate to next screen
+        // Navigate to home or main screen after login
+        context.go('/home');
       }
     } catch (e) {
-      print('$e');
+      // TODO: Show proper error UI
+      print('Login error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: ${e.toString()}')),
+        );
+      }
     }
   }
 
@@ -48,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 340,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha:0.2),
+                  color: const Color.fromRGBO(255, 255, 255, 0.2),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(color: Colors.white30),
                 ),
@@ -60,15 +69,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF2e7d32),
+                        fontFamily: 'Roboto',
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _input(_emailController, 'Email', Icons.email_outlined),
+                    InputField(
+                      controller: _emailController,
+                      hint: 'Email',
+                      icon: Icons.email_outlined,
+                    ),
                     const SizedBox(height: 16),
-                    _input(
-                      _passwordController,
-                      'Password',
-                      Icons.lock_outline,
+                    InputField(
+                      controller: _passwordController,
+                      hint: 'Password',
+                      icon: Icons.lock_outline,
                       obscure: true,
                     ),
                     const SizedBox(height: 24),
@@ -76,15 +91,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: login,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
-                        backgroundColor: Color(0xffdfdfff),
-                        elevation: 0.1,
+                        backgroundColor: const Color(0xFF81c784), // lightGreen
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: const Text(
                         'Sign In',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'Roboto',
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => context.go('/signup'),
+                      child: const Text(
+                        "Don't have an account? Sign Up",
+                        style: TextStyle(
+                          color: Color(0xFF2e7d32), // primaryGreen
+                          decoration: TextDecoration.underline,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -96,26 +130,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
-
-Widget _input(
-  TextEditingController controller,
-  String hint,
-  IconData icon, {
-  bool obscure = false,
-}) {
-  return TextField(
-    controller: controller,
-    obscureText: obscure,
-    decoration: InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon),
-      filled: true,
-      fillColor: Colors.white.withValues(alpha:0.3),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-    ),
-  );
 }

@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
+
+import '../Components/input_field.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -33,14 +36,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
       if (mounted) {
-        // TODO: Navigate to next screen
+        // Navigate to home or main screen after signup
+        context.go('/home');
       }
     } catch (e) {
-      print('$e');
+      print('Signup error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sign up failed: ${e.toString()}')),
+        );
+      }
     }
   }
 
@@ -64,7 +73,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: 340,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha:0.2),
+                  color: const Color.fromRGBO(255, 255, 255, 0.2),
                   borderRadius: BorderRadius.circular(25),
                   border: Border.all(color: Colors.white30),
                 ),
@@ -77,20 +86,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2e7d32),
+                        fontFamily: 'Roboto',
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _input(_emailController, 'Email', Icons.email_outlined),
+                    InputField(
+                      controller: _emailController,
+                      hint: 'Email',
+                      icon: Icons.email_outlined,
+                    ),
                     const SizedBox(height: 16),
-                    _input(_passwordController, 'Password', Icons.lock_outline, obscure: true),
+                    InputField(
+                      controller: _passwordController,
+                      hint: 'Password',
+                      icon: Icons.lock_outline,
+                      obscure: true,
+                    ),
                     const SizedBox(height: 16),
-                    _input(_confirmPasswordController, 'Confirm Password', Icons.lock_person_outlined, obscure: true),
+                    InputField(
+                      controller: _confirmPasswordController,
+                      hint: 'Confirm Password',
+                      icon: Icons.lock_person_outlined,
+                      obscure:true,
+                    ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: signUp,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
-                        backgroundColor: const Color(0xFF81c784), // Modern green
+                        backgroundColor: const Color(0xFF81c784), // lightGreen
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -98,7 +122,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       child: const Text(
                         'Create Account',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'Roboto',
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () => context.go('/login'),
+                      child: const Text(
+                        'Already have an account? Log In',
+                        style: TextStyle(
+                          color: Color(0xFF2e7d32), // primaryGreen
+                          decoration: TextDecoration.underline,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -110,27 +153,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-}
-
-Widget _input(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
-      bool obscure = false,
-    }) {
-  return TextField(
-    controller: controller,
-    obscureText: obscure,
-    decoration: InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon, color: Colors.green[700]),
-      filled: true,
-      fillColor: Colors.white.withValues(alpha:0.3),
-      hintStyle: const TextStyle(color: Colors.black87),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-    ),
-  );
 }

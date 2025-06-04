@@ -50,6 +50,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
+
     appId: '1:469047707323:android:9f0344b1162acd5ba00b9e',
     messagingSenderId: '469047707323',
     projectId: 'eco-wise-b01e6',
