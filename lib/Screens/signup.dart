@@ -4,10 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 import '../Components/input_field.dart';
+import 'home.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
-
+  static const routeName = '/signup';
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
 }
@@ -41,10 +42,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       if (mounted) {
         // Navigate to home or main screen after signup
-        context.go('/home');
+        context.go(HomeScreen.routeName);
       }
     } catch (e) {
-      print('Signup error: $e');
+      print('Signup error: $e'); //TODO same with login btw
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign up failed: ${e.toString()}')),

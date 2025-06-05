@@ -4,10 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
 import '../Components/input_field.dart';
+import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  static const routeName = '/login';
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -24,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (mounted) {
         // Navigate to home or main screen after login
-        context.go('/home');
+        context.go(HomeScreen.routeName);
       }
     } catch (e) {
       // TODO: Show proper error UI

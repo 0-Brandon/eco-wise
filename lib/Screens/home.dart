@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
+  static const routeName = '/home';
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }

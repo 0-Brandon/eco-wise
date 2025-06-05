@@ -15,15 +15,15 @@ GoRouter router = GoRouter(
   initialLocation: '/login',
   routes: [
     GoRoute(
-      path:'/login',
+      path:LoginScreen.routeName,
       builder: (context, state) => LoginScreen(),
     ),
     GoRoute(
-      path:'/signup',
+      path: SignUpScreen.routeName,
       builder: (context, state) => SignUpScreen(),
     ),
     GoRoute(
-     path:'/',
+     path:HomeScreen.routeName,
         builder:(context, state) => HomeScreen()
     ),
   ],
