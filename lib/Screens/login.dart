@@ -41,39 +41,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFd9f7e5), Color(0xFFb2f2bb)],
+            colors: [colorScheme.primaryContainer, colorScheme.secondaryContainer],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: Center(
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(24),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 width: 340,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: const Color.fromRGBO(255, 255, 255, 0.2),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: Colors.white30),
+                  color: colorScheme.surface.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Login',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2e7d32),
-                        fontFamily: 'Roboto',
-                      ),
+                      style: theme.textTheme.displayMedium,
                     ),
                     const SizedBox(height: 24),
                     InputField(
@@ -89,37 +87,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscure: true,
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: login,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(48),
-                        backgroundColor: const Color(0xFF81c784), // lightGreen
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Sign In',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
-                          fontFamily: 'Roboto',
-                          color: Colors.white,
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: login,
+                        child: Text(
+                          'Sign In',
+                          style: theme.elevatedButtonTheme.style?.textStyle?.resolve({}),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () => context.go('/signup'),
-                      child: const Text(
+                      child: Text(
                         "Don't have an account? Sign Up",
-                        style: TextStyle(
-                          color: Color(0xFF2e7d32), // primaryGreen
+                        style: theme.textButtonTheme.style?.textStyle?.resolve({})?.copyWith(
                           decoration: TextDecoration.underline,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
                         ),
                       ),
                     ),

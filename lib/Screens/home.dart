@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   static const routeName = '/home';
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -28,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     user = FirebaseAuth.instance.currentUser;
     _loadUserPoints();
-    _loadUserPoints();
     _initializeAnimations();
   }
 
@@ -49,21 +49,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       DateTime currentWeekStart = getCurrentWeekStart();
       DateTime lastWeekStart = getLastWeekStart();
 
-
-      /*
-      user_activities/{userId}/
-      ├── classifications/
-      │   ├── {docId}
-      │   │   ├── timestamp: Timestamp
-      │   │   ├── is_correct: boolean
-      │   │   ├── trash_type: string
-      │   │   └── confidence_score: number
-      └── lessons_completed/
-          ├── {docId}
-          │   ├── completed_at: Timestamp
-          │   ├── lesson_id: string
-          │   └── score: number
-      */
       // Query for trash classification points this week
       final currentWeekClassifications = await FirebaseFirestore.instance
           .collection('user_activities')
@@ -100,19 +85,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       // Calculate current week points
       int currentPoints = 0;
 
-      // Points from trash classifications (e.g., 10 points per correct classification)
+      // Points from trash classifications (10 points per correct, 2 for attempt)
       for (var doc in currentWeekClassifications.docs) {
         bool isCorrect = doc.data()['is_correct'] as bool? ?? false;
         if (isCorrect) {
-          currentPoints += 10; // 10 points per correct classification
+          currentPoints += 10;
         } else {
-          currentPoints += 2; // 2 points for attempting, even if wrong
+          currentPoints += 2;
         }
       }
 
-      // Points from completed lessons (e.g., 25 points per lesson)
+      // Points from completed lessons (25 points per lesson)
       for (var _ in currentWeekLessons.docs) {
-        currentPoints += 25; // 25 points per completed lesson
+        currentPoints += 25;
       }
 
       // Calculate last week points
@@ -137,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         isLoadingPoints = false;
       });
     } catch (e) {
-      // Handle errors gracefully
       print('Error loading points: $e');
       setState(() {
         currentWeekPoints = 0;
@@ -167,11 +151,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(parent: _fadeController!, curve: Curves.easeOut),
+      CurvedAnimation(parent: _fadeController!, curve: Curves.easeOut),
     );
     _slideAnimation = Tween<Offset>(
-    begin: const Offset(0, 0.3),
-    end: Offset.zero,
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController!, curve: Curves.easeOutCubic));
 
     _fadeController!.forward();
@@ -184,15 +168,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _slideController?.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Container(
         width: double.infinity,
-        height: double.infinity, //Why needed here but not in login and signup?
-        decoration: const BoxDecoration(
+        height: double.infinity,
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFd9f7e5), Color(0xFFb2f2bb)],
+            colors: [
+              theme.colorScheme.primaryContainer,
+              theme.colorScheme.secondaryContainer,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -207,11 +197,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(),
+                    _buildHeader(theme),
                     const SizedBox(height: 32),
-                    _buildStatsCard(),
+                    _buildStatsCard(theme),
                     const SizedBox(height: 32),
-                    _buildQuickActions(),
+                    _buildQuickActions(theme),
                   ],
                 ),
               ),
@@ -222,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ThemeData theme) {
     final userName = user?.email?.split('@').first ?? '[USER]';
     final greeting = _getGreeting();
 
@@ -231,29 +221,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       children: [
         Text(
           greeting,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.normal,
-            fontFamily: 'Roboto',
-            color: Color(0xFF757575),
-          ),
+          style: theme.textTheme.headlineMedium,
         ),
         const SizedBox(height: 4),
         Text(
           userName,
-          style: const TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Roboto',
-            color: Color(0xFF2e7d32),
-            height: 1.2,
-          ),
+          style: theme.textTheme.displayLarge,
         ),
       ],
     );
   }
 
-  Widget _buildStatsCard() {
+  Widget _buildStatsCard(ThemeData theme) {
     double percentageChange = lastWeekPoints > 0
         ? ((currentWeekPoints - lastWeekPoints) / lastWeekPoints * 100)
         : 0.0;
@@ -268,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           width: double.infinity,
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF2e7d32).withValues(alpha: 0.1),
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.3),
@@ -283,12 +262,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4db6ac).withValues(alpha: 0.2),
+                      color: theme.colorScheme.secondary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.eco,
-                      color: Color(0xFF2e7d32),
+                      color: theme.colorScheme.primary,
                       size: 24,
                     ),
                   ),
@@ -297,13 +276,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'This Week',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF757575),
-                            fontFamily: 'Roboto',
-                          ),
+                          style: theme.textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 4),
                         Row(
@@ -313,16 +288,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 width: 60,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF81c784).withValues(alpha: 0.3),
+                                  color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Center(
+                                child: Center(
                                   child: SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2e7d32)),
+                                      valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                                     ),
                                   ),
                                 ),
@@ -330,12 +305,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             else
                               Text(
                                 currentWeekPoints.toString(),
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2e7d32),
-                                  fontFamily: 'Roboto',
-                                ),
+                                style: theme.textTheme.displayMedium,
                               ),
                             const SizedBox(width: 8),
                             if (!isLoadingPoints && lastWeekPoints > 0)
@@ -346,9 +316,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                                 decoration: BoxDecoration(
                                   color: (isPositive
-                                      ? const Color(0xFF81c784)
-                                      : const Color(0xFFe57373)
-                                  ).withValues(alpha: 0.3),
+                                      ? theme.colorScheme.secondaryContainer
+                                      : Colors.red.shade100
+                                  ).withValues(alpha: 0.8),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -358,19 +328,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       isPositive ? Icons.trending_up : Icons.trending_down,
                                       size: 12,
                                       color: isPositive
-                                          ? const Color(0xFF2e7d32)
-                                          : const Color(0xFFc62828),
+                                          ? theme.colorScheme.primary
+                                          : Colors.red.shade700,
                                     ),
                                     const SizedBox(width: 2),
                                     Text(
                                       changeText,
-                                      style: TextStyle(
-                                        fontSize: 12,
+                                      style: theme.textTheme.bodySmall?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         color: isPositive
-                                            ? const Color(0xFF2e7d32)
-                                            : const Color(0xFFc62828),
-                                        fontFamily: 'Roboto',
+                                            ? theme.colorScheme.primary
+                                            : Colors.red.shade700,
                                       ),
                                     ),
                                   ],
@@ -387,29 +355,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Eco Points Earned',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF212121),
-                      fontFamily: 'Roboto',
-                    ),
+                    style: theme.textTheme.titleMedium,
                   ),
                   if (isLoadingPoints)
-                    const SizedBox(
+                    SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2e7d32)),
+                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                       ),
                     )
                   else
                     GestureDetector(
                       onTap: _loadUserPoints,
-                      child: const Icon(
+                      child: Icon(
                         Icons.refresh,
-                        color: Color(0xFF757575),
+                        color: theme.colorScheme.onSurfaceVariant,
                         size: 20,
                       ),
                     ),
@@ -422,18 +386,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Quick Actions',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Roboto',
-            color: Color(0xFF2e7d32),
-          ),
+          style: theme.textTheme.headlineLarge,
         ),
         const SizedBox(height: 20),
         GridView.count(
@@ -445,32 +404,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           childAspectRatio: 1.1,
           children: [
             _buildActionCard(
+              theme,
               Icons.camera_alt_rounded,
               'Classify Trash',
               'Earn 10 points',
               '/classify',
-              const Color(0xFF4db6ac),
+              theme.colorScheme.secondary,
             ),
             _buildActionCard(
+              theme,
               Icons.menu_book_rounded,
               'Learn',
               'Earn 25 points',
               '/lessons',
-              const Color(0xFF81c784),
+              theme.colorScheme.primary,
             ),
             _buildActionCard(
+              theme,
               Icons.leaderboard_rounded,
               'Leaderboard',
               'Your ranking',
               '/leaderboard',
-              const Color(0xFF2e7d32),
+              theme.colorScheme.primary,
             ),
             _buildActionCard(
+              theme,
               Icons.person_rounded,
               'Profile',
               'Your stats',
               '/profile',
-              const Color(0xFF4db6ac),
+              theme.colorScheme.secondary,
             ),
           ],
         ),
@@ -479,6 +442,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildActionCard(
+      ThemeData theme,
       IconData icon,
       String title,
       String subtitle,
@@ -518,21 +482,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 12),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF212121),
-                    fontFamily: 'Roboto',
-                  ),
+                  style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF757575),
-                    fontFamily: 'Roboto',
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
               ],
             ),
