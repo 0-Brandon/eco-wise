@@ -1,4 +1,6 @@
+import 'package:eco_wise/Providers/user_provider.dart';
 import 'package:eco_wise/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +17,15 @@ void main() async {
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform
   );
+  FirebaseAuth.instance.authStateChanges().listen((User? firebaseUser) async{
+    if(firebaseUser!=null){
+      await providerContainer.read(userProvider.notifier).loadCurrentUser(firebaseUser.uid);
+    }
+    else{
+      providerContainer.read(userProvider.notifier).clearUser();
+    }
+  });
+
   runApp(
       UncontrolledProviderScope(container: providerContainer, child: MyApp())
   );

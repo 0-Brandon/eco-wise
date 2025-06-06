@@ -1,30 +1,41 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../Models/users.dart';
 
 class DBUserProfile {
-  static StreamSubscription? _userStream;
+  static final FirebaseFirestore db = FirebaseFirestore.instance;
   static Future<bool> writeUserModel(UserModel user) async{
-    bool success = false;
-
-    var db = FirebaseFirestore.instance;
-    if(FirebaseAuth.instance.currentUser !=null){
-      final FirebaseAuth auth = FirebaseAuth.instance;
-      final User? currUser = auth.currentUser;
-      if(currUser == null){
-        return false;
-      }
-      String uid = currUser.uid;
-      try{
-        await db.collection('users').doc(uid).set(user.toFirestore(), SetOptions(merge:true));
-      }
-      catch(e){
-        print(e);
-        success = false;
-      }
+    try{
+      await db.collection('users').doc(user.uid).set(user.toFirestore(), SetOptions(merge:true));
+      return true;
+    }catch(e){
+      print(e);
+      return false;
     }
-    return success;
+  }
+  static Future<UserModel?> readUserModel (String uid) async {
+    try {
+      final userDoc = await db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        return UserModel.fromFirestore(userDoc);
+      }
+      return null;
+    }
+    catch(e){
+      print(e);
+      return null;
+    }
+  }
+
+  static Future<bool> deleteUserModel(String uid) async{
+    try {
+      await db.collection('users').doc(uid).delete();
+      return true;
+    }
+    catch(e){
+      print(e);
+      return false;
+    }
   }
 }
