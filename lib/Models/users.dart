@@ -12,7 +12,7 @@ class UserModel{
   final String imageURL;
 
   UserModel({
-    required this.name,
+    this.name = '',
     required this.uid,
     required this.email,
     this.lessons,

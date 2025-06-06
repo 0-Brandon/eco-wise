@@ -1,19 +1,20 @@
 import 'dart:ui';
+import 'package:eco_wise/Models/users.dart';
+import 'package:eco_wise/Providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   static const routeName = '/home';
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  User? user;
+class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStateMixin {
   AnimationController? _fadeController;
   AnimationController? _slideController;
   Animation<double>? _fadeAnimation;
@@ -27,108 +28,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    user = FirebaseAuth.instance.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
+    if(user != null && ref.read(userProvider) != null){
+      ref.read(userProvider.notifier).loadCurrentUser(user.uid);
+    }
+
     _loadUserPoints();
     _initializeAnimations();
   }
 
   Future<void> _loadUserPoints() async {
-    if (user == null) {
-      setState(() {
-        isLoadingPoints = false;
-      });
-      return;
-    }
 
-    try {
-      setState(() {
-        isLoadingPoints = true;
-      });
-
-      // Get current week's start date (Monday)
-      DateTime currentWeekStart = getCurrentWeekStart();
-      DateTime lastWeekStart = getLastWeekStart();
-
-      // Query for trash classification points this week
-      final currentWeekClassifications = await FirebaseFirestore.instance
-          .collection('user_activities')
-          .doc(user!.uid)
-          .collection('classifications')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(currentWeekStart))
-          .get();
-
-      // Query for lesson completion points this week
-      final currentWeekLessons = await FirebaseFirestore.instance
-          .collection('user_activities')
-          .doc(user!.uid)
-          .collection('lessons_completed')
-          .where('completed_at', isGreaterThanOrEqualTo: Timestamp.fromDate(currentWeekStart))
-          .get();
-
-      // Query for last week's activities
-      final lastWeekClassifications = await FirebaseFirestore.instance
-          .collection('user_activities')
-          .doc(user!.uid)
-          .collection('classifications')
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(lastWeekStart))
-          .where('timestamp', isLessThan: Timestamp.fromDate(currentWeekStart))
-          .get();
-
-      final lastWeekLessons = await FirebaseFirestore.instance
-          .collection('user_activities')
-          .doc(user!.uid)
-          .collection('lessons_completed')
-          .where('completed_at', isGreaterThanOrEqualTo: Timestamp.fromDate(lastWeekStart))
-          .where('completed_at', isLessThan: Timestamp.fromDate(currentWeekStart))
-          .get();
-
-      // Calculate current week points
-      int currentPoints = 0;
-
-      // Points from trash classifications (10 points per correct, 2 for attempt)
-      for (var doc in currentWeekClassifications.docs) {
-        bool isCorrect = doc.data()['is_correct'] as bool? ?? false;
-        if (isCorrect) {
-          currentPoints += 10;
-        } else {
-          currentPoints += 2;
-        }
-      }
-
-      // Points from completed lessons (25 points per lesson)
-      for (var _ in currentWeekLessons.docs) {
-        currentPoints += 25;
-      }
-
-      // Calculate last week points
-      int lastPoints = 0;
-
-      for (var doc in lastWeekClassifications.docs) {
-        bool isCorrect = doc.data()['is_correct'] as bool? ?? false;
-        if (isCorrect) {
-          lastPoints += 10;
-        } else {
-          lastPoints += 2;
-        }
-      }
-
-      for (var _ in lastWeekLessons.docs) {
-        lastPoints += 25;
-      }
-
-      setState(() {
-        currentWeekPoints = currentPoints;
-        lastWeekPoints = lastPoints;
-        isLoadingPoints = false;
-      });
-    } catch (e) {
-      print('Error loading points: $e');
-      setState(() {
-        currentWeekPoints = 0;
-        lastWeekPoints = 0;
-        isLoadingPoints = false;
-      });
-    }
   }
 
   DateTime getCurrentWeekStart() {
@@ -213,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    final userName = user?.email?.split('@').first ?? '[USER]';
+    final UserModel? currentUserModel = ref.watch(userProvider);
     final greeting = _getGreeting();
 
     return Column(
@@ -225,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 4),
         Text(
-          userName,
+          currentUserModel?.name ?? "USER",
           style: theme.textTheme.displayLarge,
         ),
       ],

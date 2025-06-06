@@ -1,4 +1,5 @@
 import 'package:eco_wise/Providers/user_provider.dart';
+import 'package:eco_wise/Screens/profile.dart';
 import 'package:eco_wise/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -32,7 +33,7 @@ void main() async {
 }
 
 GoRouter router = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/profile',
   routes: [
     GoRoute(
       path: LoginScreen.routeName,
@@ -44,8 +45,12 @@ GoRouter router = GoRouter(
     ),
     GoRoute(
         path: HomeScreen.routeName,
-        builder: (context, state) => HomeScreen()
+        builder: (context, state) => HomeScreen(),
     ),
+    GoRoute(
+      path: ProfileScreen.routeName,
+      builder: (context, state) => ProfileScreen(),
+    )
   ],
 );
 

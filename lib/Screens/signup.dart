@@ -1,19 +1,22 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../Components/input_field.dart';
+import '../Models/users.dart';
+import '../Providers/user_provider.dart';
 import 'home.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
   static const routeName = '/signup';
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -36,16 +39,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      if (mounted) {
-        // Navigate to home or main screen after signup
-        context.go(HomeScreen.routeName);
+
+      if(userCredential.user!= null) {
+        UserModel newUser = UserModel(
+          uid: userCredential.user!.uid,
+          email: _emailController.text.trim(),
+        );
+
+        final success = await ref.read(userProvider.notifier).createAndSetUser(newUser);
+
+        if (mounted &&success) {
+          // Navigate to home or main screen after signup
+          context.go(HomeScreen.routeName);
+        }
+        else{
+          print('Failed to create user in Firestore');
+        }
       }
     } catch (e) {
-      print('Signup error: $e'); //TODO same with login btw
+      print('Signup error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Sign up failed: ${e.toString()}')),
